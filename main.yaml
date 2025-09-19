@@ -12,19 +12,48 @@
     - config.yaml
 
   tasks:
-    - name: Ensure target tags exists.
+    - name: Ensure tags exists.
       netbox_tag:
         netbox_url: "{{ netbox_url }}"
         netbox_token: "{{ netbox_token }}"
         validate_certs: "{{ validate_certs }}"
         data:
-            name: "{{ item.name }}"
-            slug: "{{ item.slug }}"
-            color: "{{ item.color }}"
+          name: "{{ item.name }}"
+          slug: "{{ item.slug }}"
+          color: "{{ item.color }}"
         state: present
       loop: "{{ nb_tags }}"
-    
-    - name: Ensure target regions exists.
+
+    - name: Ensure custom field choice sets exists.
+      netbox_custom_field_choice_set:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        validate_certs: "{{ validate_certs }}"
+        data:
+          name: "{{ item.name }}"
+          order_alphabetically: "{{ item.order_alphabetically }}"
+          extra_choices: "{{ item.extra_choices }}"
+        state: present
+      loop: "{{ custom_field_choice_sets }}"
+      changed_when: false # workaround as it always show as changed
+
+    - name: Ensure custom field exists.
+      netbox_custom_field:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        validate_certs: "{{ validate_certs }}"
+        data:
+          name: "{{ item.name }}"
+          label: "{{ item.label }}"
+          required: "{{ item.required }}"
+          # is_cloneable, missing in ansible module
+          type: "{{ item.type }}"
+          choice_set: "{{ item.choice_set }}"
+          object_types: "{{ item.object_types }}"
+        state: present
+      loop: "{{ custom_fields }}"
+
+    - name: Ensure regions exists.
       netbox_region:
         netbox_url: "{{ netbox_url }}"
         netbox_token: "{{ netbox_token }}"
@@ -32,8 +61,122 @@
         data:
           name: "{{ item.name }}"
           slug: "{{ item.slug }}"
-          description: "{{ item.description }}"
+          description: "{{ item.description | default(omit, true) }}"
+          parent_region: "{{ item.parent_region | default(omit, true) }}"
+          custom_fields: "{{ item.custom_fields | default(omit, true) }}"
           tags:
             - "source-ansible"
         state: present
       loop: "{{ regions }}"
+
+    - name: Ensure sites exists.
+      netbox_site:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        validate_certs: "{{ validate_certs }}"
+        data:
+          name: "{{ item.name }}"
+          slug: "{{ item.slug }}"
+          description: "{{ item.description | default(omit, true) }}"
+          region: "{{ item.region | default(omit, true) }}"
+          status: "{{ item.status }}"
+          time_zone: "{{ item.time_zone | default(omit, true)  }}"
+          physical_address: "{{ item.physical_address | default(omit, true)  }}"
+          latitude: "{{ item.latitude | default(omit, true)  }}"
+          longitude: "{{ item.longitude | default(omit, true)  }}"
+          tags:
+            - "source-ansible"
+        state: present
+      loop: "{{ sites }}"
+
+    - name: Ensure RIRs exists.
+      netbox_rir:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        validate_certs: "{{ validate_certs }}"
+        data:
+          name: "{{ item.name }}"
+          slug: "{{ item.slug }}"
+          is_private: "{{ item.is_private }}"
+          description: "{{ item.description | default(omit, true) }}"
+          tags:
+            - "source-ansible"
+        state: present
+      loop: "{{ rirs }}"
+
+    - name: Ensure ASNs exists.
+      netbox_asn:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        validate_certs: "{{ validate_certs }}"
+        data:
+          asn: "{{ item.asn }}"
+          rir: "{{ item.rir }}"
+          description: "{{ item.description | default(omit, true) }}"
+          tags:
+            - "source-ansible"
+        state: present
+      loop: "{{ asns }}"
+
+    # ASN Ranges module missing
+
+    - name: Ensure aggregate exists.
+      netbox_aggregate:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        validate_certs: "{{ validate_certs }}"
+        data:
+          prefix: "{{ item.prefix }}"
+          rir: "{{ item.rir }}"
+          description: "{{ item.description | default(omit, true) }}"
+          tags:
+            - "source-ansible"
+        state: present
+      loop: "{{ aggregates }}"
+
+    - name: Ensure route targets exists.
+      netbox_route_target:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        validate_certs: "{{ validate_certs }}"
+        data:
+          name: "{{ item.name }}"
+          description: "{{ item.description | default(omit, true) }}"
+          tags:
+            - "source-ansible"
+        state: present
+      loop: "{{ route_targes }}"
+
+    - name: Ensure VRFs exists.
+      netbox_vrf:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        validate_certs: "{{ validate_certs }}"
+        data:
+          name: "{{ item.name }}"
+          rd: "62464:{{ item.id }}"
+          enforce_unique: "{{ item.enforce_unique }}"
+          import_targets: "{{ item.import_targets }}"
+          export_targets: "{{ item.export_targets }}"
+          description: "{{ item.description | default(omit, true) }}"
+          tags:
+            - "source-ansible"
+        state: present
+      loop: "{{ vrfs }}"
+
+    - name: Ensure prefixes exists.
+      netbox_prefix:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        validate_certs: "{{ validate_certs }}"
+        data:
+          prefix: "{{ item.prefix }}"
+          status: "{{ item.status }}"
+          vrf: "{{ item.vrf | default(omit, true) }}"
+          scope_type: "{{ 'dcim.site' if (item.scope is defined and item.scope) else omit }}"
+          scope: "{{ item.scope | default(omit, true )}}"
+          description: "{{ item.description | default(omit, true) }}"
+          tags:
+            - "source-ansible"
+        state: present
+      loop: "{{ prefixes }}"

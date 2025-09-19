@@ -1,0 +1,103 @@
+---
+nb_tags:
+  - name: "source/ansible"
+    slug: "source-ansible"
+    color: "000000" # black
+
+custom_field_choice_sets:
+  - name: region_type
+    order_alphabetically: true
+    extra_choices:
+      - ["country", "Country"]
+      - ["state", "State"]
+      - ["city", "City"]
+
+custom_fields:
+  - name: region_type
+    label: Type
+    required: true
+    type: select
+    choice_set: region_type
+    object_types:
+      - dcim.region
+
+regions:
+  # Contries
+  - name: USA
+    slug: usa
+    description: United States of America
+    custom_fields:
+      region_type: country
+  # States
+  - name: Massachusetts
+    slug: massachusetts
+    parent_region: usa
+    custom_fields:
+      region_type: state
+  - name: California
+    slug: california
+    parent_region: usa
+    custom_fields:
+      region_type: state
+  # Cities
+  - name: Foxborough
+    slug: foxborough
+    parent_region: massachusetts
+    custom_fields:
+      region_type: city
+
+sites:
+  - name: Gillette Stadium
+    slug: gillette-stadium
+    id: 10
+    region: foxborough
+    status: active
+    time_zone: "America/New_York"
+    physical_address: "1 Patriot Pl, Foxborough, MA 02035, USA"
+    latitude: 42.090825
+    longitude: -71.264361
+
+rirs:
+  - name: RFC 1918
+    slug: rfc-1918
+    is_private: true
+    description: "Address Allocation for Private Internets"
+  - name: ARIN
+    slug: arin
+    is_private: true
+    description: "American Registry for Internet Numbers"
+
+asns:
+  - asn: 62464
+    rir: arin
+
+aggregates:
+  - prefix: "10.0.0.0/8"
+    rir: rfc-1918
+  - prefix: "172.16.0.0/12"
+    rir: rfc-1918
+  - prefix: "192.168.0.0/16"
+    rir: rfc-1918
+  - prefix: "209.174.20.0/22"
+    rir: arin
+
+route_targes:
+  - name: "62464:10"
+
+vrfs:
+  - name: Printer
+    id: 10
+    enforce_unique: true
+    import_targets:
+      - "62464:10"
+    export_targets:
+      - "62464:10"
+
+prefixes:
+  - prefix: "10.10.0.0/16"
+    status: "active"
+    vrf: Printer
+  - prefix: "10.10.10.0/24"
+    status: "active"
+    vrf: Printer
+    scope: gillette-stadium
