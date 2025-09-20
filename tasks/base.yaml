@@ -1,0 +1,41 @@
+---
+- name: Ensure tags exists.
+  netbox_tag:
+    netbox_url: "{{ netbox_url }}"
+    netbox_token: "{{ netbox_token }}"
+    validate_certs: "{{ validate_certs }}"
+    data:
+      name: "{{ item.name }}"
+      slug: "{{ item.slug }}"
+      color: "{{ item.color }}"
+    state: present
+  loop: "{{ nb_tags }}"
+
+- name: Ensure custom field choice sets exists.
+  netbox_custom_field_choice_set:
+    netbox_url: "{{ netbox_url }}"
+    netbox_token: "{{ netbox_token }}"
+    validate_certs: "{{ validate_certs }}"
+    data:
+      name: "{{ item.name }}"
+      order_alphabetically: "{{ item.order_alphabetically }}"
+      extra_choices: "{{ item.extra_choices }}"
+    state: present
+  loop: "{{ custom_field_choice_sets }}"
+  changed_when: false # workaround as it always show as changed
+
+- name: Ensure custom field exists.
+  netbox_custom_field:
+    netbox_url: "{{ netbox_url }}"
+    netbox_token: "{{ netbox_token }}"
+    validate_certs: "{{ validate_certs }}"
+    data:
+      name: "{{ item.name }}"
+      label: "{{ item.label }}"
+      required: "{{ item.required }}"
+      # is_cloneable, missing in ansible module
+      type: "{{ item.type }}"
+      choice_set: "{{ item.choice_set }}"
+      object_types: "{{ item.object_types }}"
+    state: present
+  loop: "{{ custom_fields }}"
