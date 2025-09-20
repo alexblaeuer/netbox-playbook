@@ -61,8 +61,8 @@
         data:
           name: "{{ item.name }}"
           slug: "{{ item.slug }}"
-          description: "{{ item.description | default(omit, true) }}"
           parent_region: "{{ item.parent_region | default(omit, true) }}"
+          description: "{{ item.description | default(omit, true) }}"
           custom_fields: "{{ item.custom_fields | default(omit, true) }}"
           tags:
             - "source-ansible"
@@ -180,3 +180,54 @@
             - "source-ansible"
         state: present
       loop: "{{ prefixes }}"
+
+    - name: Ensure manufacturers exists.
+      netbox_manufacturer:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        validate_certs: "{{ validate_certs }}"
+        data:
+          name: "{{ item.name }}"
+          slug: "{{ item.slug }}"
+          description: "{{ item.description | default(omit, true) }}"
+          tags:
+            - "source-ansible"
+        state: present
+      loop: "{{ manufacturers }}"
+
+    - name: Ensure platforms exists.
+      netbox_platform:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        validate_certs: "{{ validate_certs }}"
+        data:
+          name: "{{ item.name }}"
+          slug: "{{ item.slug }}"
+          # parent, missing in ansible module
+          manufacturer: "{{ item.manufacturer | default(omit, true) }}"
+          description: "{{ item.description | default(omit, true) }}"
+          tags:
+            - "source-ansible"
+        state: present
+      loop: "{{ platforms }}"
+
+    # Module missing some attributes
+    - name: Ensure device types exists.
+      netbox_device_type:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        validate_certs: "{{ validate_certs }}"
+        data:
+          model: "{{ item.model }}"
+          slug: "{{ item.slug }}"
+          part_number: "{{ item.part_number }}"
+          manufacturer: "{{ item.manufacturer }}"
+          default_platform: "{{ item.default_platform | default(omit, true) }}"
+          is_full_depth: "{{ item.is_full_depth }}"
+          subdevice_role: "{{ item.subdevice_role | default(omit, true) }}"
+          u_height: "{{ item.u_height }}"
+          description: "{{ item.description | default(omit, true) }}"
+          tags:
+            - "source-ansible"
+        state: present
+      loop: "{{ device_types }}"
