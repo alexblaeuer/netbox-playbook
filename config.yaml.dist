@@ -101,3 +101,23 @@ prefixes:
     status: "active"
     vrf: Printer
     scope: gillette-stadium
+
+manufacturers:
+  - name: Cisco
+    slug: cisco
+  - name: Generic
+    slug: generic
+
+platforms:
+  - name: IOS
+    slug: IOS
+    manufacturer: cisco
+
+device_types:
+  - model: Generic
+    slug: generic
+    part_number: Generic
+    manufacturer: generic
+    default_platform: ios
+    is_full_depth: true
+    u_height: 1
