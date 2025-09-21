@@ -15,8 +15,8 @@
     # - name: Manage base entities.
     #   import_tasks: tasks/base.yaml
 
-    - name: Manage organizations.
-      import_tasks: tasks/organizations.yaml
+    - name: Setup facilities.
+      import_tasks: tasks/facilities.yaml
 
     # - name: Manage IPAM.
     #   import_tasks: tasks/ipam.yaml
