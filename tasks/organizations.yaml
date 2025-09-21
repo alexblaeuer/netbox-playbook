@@ -1,5 +1,5 @@
 ---
-- name: Ensure regions exists.
+- name: Ensure regions exist.
   netbox_region:
     netbox_url: "{{ netbox_url }}"
     netbox_token: "{{ netbox_token }}"
@@ -9,13 +9,13 @@
       slug: "{{ item.slug }}"
       parent_region: "{{ item.parent_region | default(omit, true) }}"
       description: "{{ item.description | default(omit, true) }}"
-      custom_fields: "{{ item.custom_fields | default(omit, true) }}"
+      custom_fields: "{{ item.custom_fields }}"
       tags:
         - "source-ansible"
     state: present
   loop: "{{ regions }}"
 
-- name: Ensure sites exists.
+- name: Ensure sites exist.
   netbox_site:
     netbox_url: "{{ netbox_url }}"
     netbox_token: "{{ netbox_token }}"
@@ -37,7 +37,29 @@
     state: present
   loop: "{{ sites }}"
 
-- name: Ensure locations exists.
+- name: Build generated locations from sites and location blueprint.
+  set_fact:
+    generated_locations: |
+      {%- set generated_locations = [] -%}
+      {%- for s in sites -%}
+        {%- for l in location_blueprint -%}
+          {%- set location = {
+              'name': l.name,
+              'slug': s.slug ~ '-' ~ l.slug_suffix,
+              'site': s.slug,
+              'status': l.status,
+              'description': l.description | default('', true),
+              'custom_fields': l.custom_fields
+            } -%}
+          {%- if l.parent_suffix | default(None, true) -%}
+            {%- set _ = location.update({'parent_location': s.slug ~ '-' ~ l.parent_suffix}) -%}
+          {%- endif -%}
+          {%- set _ = generated_locations.append(location) -%}
+        {%- endfor -%}
+      {%- endfor -%}
+      {{ generated_locations }}
+
+- name: Ensure locations exist.
   netbox_location:
     netbox_url: "{{ netbox_url }}"
     netbox_token: "{{ netbox_token }}"
@@ -49,8 +71,8 @@
       site: "{{ item.site }}"
       status: "{{ item.status }}"
       description: "{{ item.description | default(omit, true) }}"
-      custom_fields: "{{ item.custom_fields | default(omit, true) }}"
+      custom_fields: "{{ item.custom_fields }}"
       tags:
         - "source-ansible"
     state: present
-  loop: "{{ locations }}"
+  loop: "{{ locations + generated_locations }}"
