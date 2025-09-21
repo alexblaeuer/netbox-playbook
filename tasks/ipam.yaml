@@ -1,5 +1,5 @@
 ---
-- name: Ensure RIRs exist.
+- name: Ensure RIR's exist.
   netbox_rir:
     netbox_url: "{{ netbox_url }}"
     netbox_token: "{{ netbox_token }}"
@@ -57,7 +57,7 @@
     state: present
   loop: "{{ route_targes }}"
 
-- name: Ensure VRFs exist.
+- name: Ensure VRF's exist.
   netbox_vrf:
     netbox_url: "{{ netbox_url }}"
     netbox_token: "{{ netbox_token }}"
@@ -76,6 +76,30 @@
     state: present
   loop: "{{ vrfs }}"
 
+- name: Build generated prefixes from sites and VRF's.
+  set_fact:
+    generated_prefixes: |
+      {%- set generated_prefixes = [] -%}
+      {%- for v in vrfs -%}
+        {%- set prefix = {
+          "prefix": "10." ~ v.custom_id ~ ".0.0/16",
+          "status": "container",
+          "vrf": v.name
+        } -%}
+        {%- set _ = generated_prefixes.append(prefix) -%}
+        {%- for s in sites -%}
+          {%- set prefix = {
+              "prefix": "10." ~ v.custom_id ~ "." ~ s.custom_id ~ ".0/24",
+              "status": "active",
+              "vrf": v.name,
+              "scope_type": "dcim.site",
+              "scope": s.slug,
+            } -%}
+          {%- set _ = generated_prefixes.append(prefix) -%}
+        {%- endfor -%}
+      {%- endfor -%}
+      {{ generated_prefixes }}
+
 - name: Ensure prefixes exist.
   netbox_prefix:
     netbox_url: "{{ netbox_url }}"
@@ -91,4 +115,4 @@
       tags:
         - "source-ansible"
     state: present
-  loop: "{{ prefixes }}"
+  loop: "{{ prefixes + generated_prefixes }}"

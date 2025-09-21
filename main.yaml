@@ -15,11 +15,11 @@
     # - name: Manage base entities.
     #   import_tasks: tasks/base.yaml
 
-    - name: Setup facilities.
-      import_tasks: tasks/facilities.yaml
+    # - name: Setup facilities.
+    #   import_tasks: tasks/facilities.yaml
 
     # - name: Manage IPAM.
     #   import_tasks: tasks/ipam.yaml
 
-    # - name: Manage devices.
-    #   import_tasks: tasks/devices.yaml
+    - name: Manage devices.
+      import_tasks: tasks/devices.yaml

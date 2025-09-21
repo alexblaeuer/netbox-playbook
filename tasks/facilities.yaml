@@ -44,15 +44,15 @@
       {%- for s in sites -%}
         {%- for l in location_blueprint -%}
           {%- set location = {
-              'name': l.name,
-              'slug': s.slug ~ '-' ~ l.slug_suffix,
-              'site': s.slug,
-              'status': l.status,
-              'description': l.description | default('', true),
-              'custom_fields': l.custom_fields
+              "name": l.name,
+              "slug": s.slug ~ "-" ~ l.slug_suffix,
+              "site": s.slug,
+              "status": l.status,
+              "description": l.description | default("", true),
+              "custom_fields": l.custom_fields
             } -%}
           {%- if l.parent_suffix | default(None, true) -%}
-            {%- set _ = location.update({'parent_location': s.slug ~ '-' ~ l.parent_suffix}) -%}
+            {%- set _ = location.update({"parent_location": s.slug ~ "-" ~ l.parent_suffix}) -%}
           {%- endif -%}
           {%- set _ = generated_locations.append(location) -%}
         {%- endfor -%}
@@ -86,14 +86,14 @@
       {%- for s in sites -%}
         {%- for r in rack_blueprint -%}
           {%- set rack = {
-              'name': r.name,
-              'site': s.slug,
-              'location': s.slug ~ '-' ~ r.location_suffix,
-              'status': r.status,
-              'width': r.width,
-              'u_height': r.u_height,
-              'desc_units': r.desc_units,
-              'description': r.description | default('', true),
+              "name": r.name,
+              "site": s.slug,
+              "location": s.slug ~ "-" ~ r.location_suffix,
+              "status": r.status,
+              "width": r.width,
+              "u_height": r.u_height,
+              "desc_units": r.desc_units,
+              "description": r.description | default("", true),
             } -%}
           {%- set _ = generated_racks.append(rack) -%}
         {%- endfor -%}
