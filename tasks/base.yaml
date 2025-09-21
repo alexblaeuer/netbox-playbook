@@ -33,9 +33,10 @@
       name: "{{ item.name }}"
       label: "{{ item.label }}"
       required: "{{ item.required }}"
+      # unique, missing in ansible module
       # is_cloneable, missing in ansible module
       type: "{{ item.type }}"
-      choice_set: "{{ item.choice_set }}"
+      choice_set: "{{ item.choice_set | default(omit, true) }}"
       object_types: "{{ item.object_types }}"
     state: present
   loop: "{{ custom_fields }}"

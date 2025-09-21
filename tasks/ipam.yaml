@@ -64,11 +64,13 @@
     validate_certs: "{{ validate_certs }}"
     data:
       name: "{{ item.name }}"
-      rd: "62464:{{ item.id }}"
+      rd: "62464:{{ item.custom_id }}"
       enforce_unique: "{{ item.enforce_unique }}"
       import_targets: "{{ item.import_targets }}"
       export_targets: "{{ item.export_targets }}"
       description: "{{ item.description | default(omit, true) }}"
+      custom_fields:
+        custom_id: "{{ item.custom_id }}"
       tags:
         - "source-ansible"
     state: present
