@@ -1,5 +1,5 @@
 ---
-- name: Ensure manufacturers exists.
+- name: Ensure manufacturers exist.
   netbox_manufacturer:
     netbox_url: "{{ netbox_url }}"
     netbox_token: "{{ netbox_token }}"
@@ -13,7 +13,7 @@
     state: present
   loop: "{{ manufacturers }}"
 
-- name: Ensure platforms exists.
+- name: Ensure platforms exist.
   netbox_platform:
     netbox_url: "{{ netbox_url }}"
     netbox_token: "{{ netbox_token }}"
@@ -30,7 +30,7 @@
   loop: "{{ platforms }}"
 
 # Module missing some attributes
-- name: Ensure device types exists.
+- name: Ensure device types exist.
   netbox_device_type:
     netbox_url: "{{ netbox_url }}"
     netbox_token: "{{ netbox_token }}"
