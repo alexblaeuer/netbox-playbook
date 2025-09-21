@@ -5,6 +5,11 @@ nb_tags:
     color: "000000" # black
 
 custom_field_choice_sets:
+  - name: location_type
+    order_alphabetically: true
+    extra_choices:
+      - ["floor", "Floor"]
+      - ["room", "Room"]
   - name: region_type
     order_alphabetically: true
     extra_choices:
@@ -13,6 +18,20 @@ custom_field_choice_sets:
       - ["city", "City"]
 
 custom_fields:
+  - name: custom_id
+    label: Custom ID
+    required: true
+    type: integer
+    object_types:
+      - dcim.site
+      - ipam.vrf
+  - name: location_type
+    label: Type
+    required: true
+    type: select
+    choice_set: location_type
+    object_types:
+      - dcim.location
   - name: region_type
     label: Type
     required: true
@@ -29,13 +48,13 @@ regions:
     custom_fields:
       region_type: country
   # States
-  - name: Massachusetts
-    slug: massachusetts
+  - name: California
+    slug: california
     parent_region: usa
     custom_fields:
       region_type: state
-  - name: California
-    slug: california
+  - name: Massachusetts
+    slug: massachusetts
     parent_region: usa
     custom_fields:
       region_type: state
@@ -45,17 +64,98 @@ regions:
     parent_region: massachusetts
     custom_fields:
       region_type: city
+  - name: Los Angeles
+    slug: los-angeles
+    parent_region: california
+    custom_fields:
+      region_type: city
 
 sites:
   - name: Gillette Stadium
     slug: gillette-stadium
-    id: 10
+    custom_id: 10
     region: foxborough
     status: active
     time_zone: "America/New_York"
     physical_address: "1 Patriot Pl, Foxborough, MA 02035, USA"
     latitude: 42.090825
     longitude: -71.264361
+  - name: SoFi Stadium
+    slug: sofi-stadium
+    custom_id: 11
+    region: los-angeles
+    status: active
+    time_zone: "America/Los_Angeles"
+    physical_address: "1001 Stadium Dr, Inglewood, CA 90301, USA"
+    latitude: 33.953537
+    longitude: -118.33905
+
+locations:
+  []
+  # # Floors
+  # - name: Floor B1
+  #   slug: gillette-stadium-b-1
+  #   site: gillette-stadium
+  #   status: active
+  #   custom_fields:
+  #     location_type: floor
+  # # Rooms
+  # - name: MER 1
+  #   slug: gillette-stadium-mer-1
+  #   parent_location: gillette-stadium-b-1
+  #   site: gillette-stadium
+  #   status: active
+  #   description: Main Equipment Room
+  #   custom_fields:
+  #     location_type: room
+
+location_blueprint:
+  # Floors
+  - name: "Floor B1"
+    slug_suffix: "b-1"
+    status: "active"
+    description: ""
+    custom_fields:
+      location_type: floor
+  # Rooms
+  - name: "MER 1"
+    slug_suffix: "mer-1"
+    parent_suffix: "b-1"
+    status: "active"
+    description: "Main Equipment Room"
+    custom_fields:
+      location_type: room
+  - name: "MER 2"
+    slug_suffix: "mer-2"
+    parent_suffix: "b-1"
+    status: "active"
+    description: "Main Equipment Room"
+    custom_fields:
+      location_type: room
+
+racks:
+  []
+  # - name: Network Core
+  #   site: gillette-stadium
+  #   location: gillette-stadium-mer-1
+  #   status: "active"
+  #   width: 19
+  #   u_height: 42
+  #   desc_units: false
+
+rack_blueprint:
+  - name: Network Core
+    location_suffix: mer-1
+    status: "active"
+    width: 19
+    u_height: 42
+    desc_units: false
+  - name: Network Core
+    location_suffix: mer-2
+    status: "active"
+    width: 19
+    u_height: 42
+    desc_units: false
 
 rirs:
   - name: RFC 1918
@@ -83,24 +183,32 @@ aggregates:
 
 route_targes:
   - name: "62464:10"
+  - name: "62464:99"
 
 vrfs:
   - name: Printer
-    id: 10
+    custom_id: 10
     enforce_unique: true
     import_targets:
       - "62464:10"
     export_targets:
       - "62464:10"
+  - name: Management
+    custom_id: 99
+    enforce_unique: true
+    import_targets:
+      - "62464:99"
+    export_targets:
+      - "62464:99"
 
-prefixes:
-  - prefix: "10.10.0.0/16"
-    status: "active"
-    vrf: Printer
-  - prefix: "10.10.10.0/24"
-    status: "active"
-    vrf: Printer
-    scope: gillette-stadium
+prefixes: []
+  # - prefix: "10.10.0.0/16"
+  #   status: "active"
+  #   vrf: Printer
+  # - prefix: "10.10.10.0/24"
+  #   status: "active"
+  #   vrf: Printer
+  #   scope: gillette-stadium
 
 manufacturers:
   - name: Cisco
@@ -121,3 +229,21 @@ device_types:
     default_platform: ios
     is_full_depth: true
     u_height: 1
+
+device_roles:
+  - name: PE
+    slug: pe
+    color: "f44336"
+    vm_role: false
+    description: Provider Edge
+
+devices:
+  - name: test-pe-001
+    status: active
+    device_role: pe
+    device_type: generic
+    site: gillette-stadium
+    location: gillette-stadium-mer-1
+    rack: Network Core
+    position: 40
+    face: front
