@@ -76,3 +76,48 @@
         - "source-ansible"
     state: present
   loop: "{{ locations + generated_locations }}"
+
+# Rack type module missing
+
+- name: Build generated racks from sites and rack blueprint.
+  set_fact:
+    generated_racks: |
+      {%- set generated_racks = [] -%}
+      {%- for s in sites -%}
+        {%- for r in rack_blueprint -%}
+          {%- set rack = {
+              'name': r.name,
+              'site': s.slug,
+              'location': s.slug ~ '-' ~ r.location_suffix,
+              'status': r.status,
+              'width': r.width,
+              'u_height': r.u_height,
+              'desc_units': r.desc_units,
+              'description': r.description | default('', true),
+            } -%}
+          {%- set _ = generated_racks.append(rack) -%}
+        {%- endfor -%}
+      {%- endfor -%}
+      {{ generated_racks }}
+
+- name: Ensure racks exist.
+  netbox_rack:
+    netbox_url: "{{ netbox_url }}"
+    netbox_token: "{{ netbox_token }}"
+    validate_certs: "{{ validate_certs }}"
+    data:
+      name: "{{ item.name }}"
+      site: "{{ item.site }}"
+      location: "{{ item.location }}"
+      status: "{{ item.status }}"
+      # airflow, missing in ansible module
+      # form_factor, missing in ansible module
+      width: "{{ item.width }}"
+      # starting_unit, missing in ansible module
+      u_height: "{{ item.u_height }}"
+      desc_units: "{{ item.desc_units }}"
+      description: "{{ item.description | default(omit, true) }}"
+      tags:
+        - "source-ansible"
+    state: present
+  loop: "{{ racks + generated_racks }}"
